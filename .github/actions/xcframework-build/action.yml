@@ -15,6 +15,9 @@ outputs:
   zip_path:
     description: "Path to the zipped XCFramework"
     value: ${{ steps.zip.outputs.zip_path }}
+  zip_checksum:
+    description: "Checksum of the zipped XCFramework"
+    value: ${{ steps.checksum.outputs.zip_checksum }}
 
 runs:
   using: "composite"
@@ -33,18 +36,14 @@ runs:
         echo "ZIP_NAME=$zip_name" >> "$GITHUB_ENV"
 
     - name: Generate Zip Checksum
+      id: checksum
       shell: sh
       run: |
-        swift package compute-checksum "$ZIP_NAME" > checksum.txt
+        checksum=`swift package compute-checksum "$ZIP_NAME"`
+        echo "zip_checksum=${checksum}" >> "$GITHUB_OUTPUT"
 
     - name: Archive XCFramework.zip
       uses: actions/upload-artifact@v4
       with:
         name: XCFramework-Archive
         path: ./${{ inputs.XCODE_PROJECT }}.xcframework.zip
-
-    - name: Archive Checksum
-      uses: actions/upload-artifact@v4
-      with:
-        name: Checksum
-        path: ./checksum.txt

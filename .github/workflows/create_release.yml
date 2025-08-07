@@ -25,6 +25,7 @@ jobs:
     runs-on: macos-15
     outputs:
       zip_path: ${{ steps.build.outputs.zip_path }}
+      zip_checksum: ${{ steps.build.outputs.zip_checksum }}
 
     steps:
       - name: Checkout
@@ -47,25 +48,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Checksum Build Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Checksum
-
-      - name: Write Checksum Environment Variable
-        shell: sh
-        run: |
-          checksum_value=`cat checksum.txt`
-          echo "CHECKSUM=$checksum_value" >> "$GITHUB_ENV"
-          rm checksum.txt
-
       - name: Modify Package Manifest
         uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest@main
         with:
           PACKAGE_MANIFEST_PATH: "./Package.swift"
           VERSION_NUMBER: ${{ inputs.VERSION_NUMBER}}
           RELEASE_ZIP_NAME: ${{ needs.buildXCFramework.outputs.zip_path }}
-          RELEASE_ZIP_CHECKSUM: ${{ env.CHECKSUM }}
+          RELEASE_ZIP_CHECKSUM: ${{ needs.buildXCFramework.outputs.zip_checksum }}
           GITHUB_SERVER: ${{ github.server_url }}
           GITHUB_REPOSITORY_NAME: ${{ github.repository }}
 
