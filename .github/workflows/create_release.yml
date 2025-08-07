@@ -4,20 +4,24 @@ permissions:
   contents: write
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       FRAMEWORK_NAME:
         description: 'The name of the framework being built'
         required: true
+        type: string
       XCODE_PROJECT_NAME:
         description: 'The name of the Xcode project used to build the framework'
         required: true
+        type: string
       SCHEME_NAME:
         description: 'The name of the scheme used to build the framework'
         required: true
+        type: string
       VERSION_NUMBER:
         description: 'The version number for the release'
         required: true
+        type: string
 
 jobs:
   buildXCFramework:
