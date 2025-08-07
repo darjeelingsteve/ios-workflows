@@ -1,0 +1,29 @@
+name: Modify Package Manifest
+description: "Modifies a Package.swift file to reference a binary target with the given details"
+
+inputs:
+  PACKAGE_MANIFEST_PATH:
+    description: "The path to the Package.swift file to be modified"
+    required: true
+  VERSION_NUMBER:
+    description: "The version number of the new release"
+    required: true
+  RELEASE_ZIP_NAME:
+    description: "The name to the release's zipped artifact"
+    required: true
+  RELEASE_ZIP_CHECKSUM:
+    description: "The checksum of the release's zipped artifact"
+    required: true
+  GITHUB_SERVER:
+    description: "The url of GitHub server hosting the repository"
+    required: true
+  GITHUB_REPOSITORY_NAME:
+    description: "The name of the repository"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Update Package.swift
+      shell: sh
+      run: "${{ github.action_path }}/modify-package-manifest.sh -p ${{ inputs.PACKAGE_MANIFEST_PATH }} -u ${{ inputs.GITHUB_SERVER }}/${{ inputs.GITHUB_REPOSITORY_NAME }}/releases/download/${{ inputs.VERSION_NUMBER }}/${{ inputs.RELEASE_ZIP_NAME }} -c ${{ inputs.RELEASE_ZIP_CHECKSUM }}"

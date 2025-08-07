@@ -1,0 +1,114 @@
+name: Create Release
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      FRAMEWORK_NAME:
+        description: 'The name of the framework being built'
+        required: true
+      XCODE_PROJECT_NAME:
+        description: 'The name of the Xcode project used to build the framework'
+        required: true
+      SCHEME_NAME:
+        description: 'The name of the scheme used to build the framework'
+        required: true
+      VERSION_NUMBER:
+        description: 'The version number for the release'
+        required: true
+
+jobs:
+  buildXCFramework:
+    name: Build XCFramework
+    runs-on: macos-15
+    outputs:
+      zip_path: ${{ steps.build.outputs.zip_path }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build XCFramework
+        id: build
+        uses: darjeelingsteve/ios-workflows/.github/actions/xcframework-build@main
+        with:
+          VERSION_NUMBER: ${{ inputs.VERSION_NUMBER }}
+          XCODE_PROJECT: ${{ inputs.XCODE_PROJECT_NAME }}
+          SCHEME: ${{ inputs.SCHEME_NAME }}
+
+  updatePackageManifest:
+    name: Update Package Manifest
+    runs-on: macos-15
+    needs: buildXCFramework
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Checksum Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Checksum
+
+      - name: Write Checksum Environment Variable
+        shell: sh
+        run: |
+          checksum_value=`cat checksum.txt`
+          echo "CHECKSUM=$checksum_value" >> "$GITHUB_ENV"
+          rm checksum.txt
+
+      - name: Modify Package Manifest
+        uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest@main
+        with:
+          PACKAGE_MANIFEST_PATH: "./Package.swift"
+          VERSION_NUMBER: ${{ inputs.VERSION_NUMBER}}
+          RELEASE_ZIP_NAME: ${{ needs.buildXCFramework.outputs.zip_path }}
+          RELEASE_ZIP_CHECKSUM: ${{ env.CHECKSUM }}
+          GITHUB_SERVER: ${{ github.server_url }}
+          GITHUB_REPOSITORY_NAME: ${{ github.repository }}
+
+      - name: Commit Changes
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: Update Package.swift
+
+  createRelease:
+    name: Create Release
+    runs-on: macos-15
+    needs: 
+      - buildXCFramework
+      - updatePackageManifest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pull Latest Changes and Add Latest Commit SHA to Environment
+        run: |
+          git pull --no-rebase
+          latest_sha=`git rev-parse HEAD`
+          echo "LATEST_SHA=$latest_sha" >> "$GITHUB_ENV"
+
+      - name: Add Release Tag
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ inputs.VERSION_NUMBER }}',
+              sha: process.env.LATEST_SHA
+            })
+
+      - name: Download XCFramework Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: XCFramework-Archive
+
+      - name: Generate Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ needs.buildXCFramework.outputs.zip_path }}
+          tag_name: ${{ inputs.VERSION_NUMBER }}
