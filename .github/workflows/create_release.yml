@@ -105,3 +105,4 @@ jobs:
         with:
           files: ${{ needs.buildXCFramework.outputs.zip_path }}
           tag_name: ${{ inputs.VERSION_NUMBER }}
+          body: "Release checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
