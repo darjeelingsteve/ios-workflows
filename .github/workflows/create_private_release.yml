@@ -94,7 +94,9 @@ jobs:
   updatePackageManifest:
     name: Update Package Manifest
     runs-on: macos-15
-    needs: createRelease
+    needs: 
+      - buildXCFramework
+      - createRelease
 
     steps:
       - name: Checkout
