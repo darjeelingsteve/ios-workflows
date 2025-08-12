@@ -108,7 +108,7 @@ jobs:
 
       - name: Retrieve Release Asset URL
         id: asset-url
-        run: echo "asset_url=${{ fromJSON(steps.<step-id>.outputs.assets)[0].url }}" >> $GITHUB_OUTPUT
+        run: echo "asset_url=${{ fromJSON(steps.generate-release.outputs.assets)[0].url }}" >> $GITHUB_OUTPUT
 
       - name: Modify Package Manifest
         uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest-private@main
