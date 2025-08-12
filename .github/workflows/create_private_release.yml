@@ -107,4 +107,4 @@ jobs:
           body: "ArtifactURL: ${{ needs.buildXCFramework.outputs.artifact_url }}\nRelease checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
 
       - name: Print Release Details
-        run: echo ${{ fromJSON(steps.generate-release.outputs.assets) }}
+        run: echo ${{ steps.generate-release.outputs.assets }}
