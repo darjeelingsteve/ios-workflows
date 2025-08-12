@@ -68,9 +68,9 @@ jobs:
   createRelease:
     name: Create Release
     runs-on: macos-15
-    needs: 
-      - buildXCFramework
-      - updatePackageManifest
+    needs: buildXCFramework
+    outputs:
+      release_asset_url: ${{ steps.asset-url.outputs.asset_url }}
 
     steps:
       - name: Checkout
