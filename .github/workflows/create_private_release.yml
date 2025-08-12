@@ -106,5 +106,19 @@ jobs:
           tag_name: ${{ inputs.VERSION_NUMBER }}
           body: "ArtifactURL: ${{ needs.buildXCFramework.outputs.artifact_url }}\nRelease checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
 
-      - name: Print Release Details
-        run: echo ${{ steps.generate-release.outputs.assets }}
+      - name: Retrieve Release Asset URL
+        id: asset-url
+        run: echo "asset_url=${{ fromJSON(steps.<step-id>.outputs.assets)[0].url }}" >> $GITHUB_OUTPUT
+
+      - name: Modify Package Manifest
+        uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest-private@main
+        with:
+          PACKAGE_MANIFEST_PATH: "./Package.swift"
+          RELEASE_ZIP_ARTIFACT_URL: ${{ steps.asset-url.outputs.asset_url }}
+          RELEASE_ZIP_CHECKSUM: ${{ needs.buildXCFramework.outputs.zip_checksum }}
+
+      - name: Commit Changes
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: Update Package.swift
+
