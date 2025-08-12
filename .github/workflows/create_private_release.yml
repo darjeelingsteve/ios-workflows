@@ -29,14 +29,14 @@ jobs:
     runs-on: macos-15
     outputs:
       artifact_url: ${{ steps.build.outputs.artifact_url }}
+      zip_path: ${{ steps.build.outputs.zip_path }}
       zip_checksum: ${{ steps.build.outputs.zip_checksum }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build XCFramework
-        id: build
+      - name: Build XCFramework        id: build
         uses: darjeelingsteve/ios-workflows/.github/actions/xcframework-build@main
         with:
           VERSION_NUMBER: ${{ inputs.VERSION_NUMBER }}
@@ -100,5 +100,6 @@ jobs:
       - name: Generate Release
         uses: softprops/action-gh-release@v2
         with:
+          files: ${{ needs.buildXCFramework.outputs.zip_path }}
           tag_name: ${{ inputs.VERSION_NUMBER }}
           body: "ArtifactURL: ${{ needs.buildXCFramework.outputs.artifact_url }}\nRelease checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
