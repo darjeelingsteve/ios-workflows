@@ -28,7 +28,6 @@ jobs:
     name: Build XCFramework
     runs-on: macos-15
     outputs:
-      artifact_url: ${{ steps.build.outputs.artifact_url }}
       zip_path: ${{ steps.build.outputs.zip_path }}
       zip_checksum: ${{ steps.build.outputs.zip_checksum }}
 
@@ -83,7 +82,7 @@ jobs:
         with:
           files: ${{ needs.buildXCFramework.outputs.zip_path }}
           tag_name: ${{ inputs.VERSION_NUMBER }}
-          body: "ArtifactURL: ${{ needs.buildXCFramework.outputs.artifact_url }}\nRelease checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
+          body: "Release checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
 
       - name: Remove XCFramework Zip
         run: rm -rf ${{ needs.buildXCFramework.outputs.zip_path }}

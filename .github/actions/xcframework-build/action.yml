@@ -18,9 +18,6 @@ outputs:
   zip_checksum:
     description: "Checksum of the zipped XCFramework"
     value: ${{ steps.checksum.outputs.zip_checksum }}
-  artifact_url:
-    description: "URL of the uploaded zipped XCFramework artifact"
-    value: ${{ steps.upload.outputs.artifact-url }}
 
 runs:
   using: "composite"
@@ -46,7 +43,6 @@ runs:
         echo "zip_checksum=${checksum}" >> "$GITHUB_OUTPUT"
 
     - name: Archive XCFramework.zip
-      id: upload
       uses: actions/upload-artifact@v4
       with:
         name: XCFramework-Archive
