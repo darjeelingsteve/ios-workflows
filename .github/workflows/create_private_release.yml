@@ -44,27 +44,6 @@ jobs:
           XCODE_PROJECT: ${{ inputs.XCODE_PROJECT_NAME }}
           SCHEME: ${{ inputs.SCHEME_NAME }}
 
-  updatePackageManifest:
-    name: Update Package Manifest
-    runs-on: macos-15
-    needs: buildXCFramework
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Modify Package Manifest
-        uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest-private@main
-        with:
-          PACKAGE_MANIFEST_PATH: "./Package.swift"
-          RELEASE_ZIP_ARTIFACT_URL: ${{ needs.buildXCFramework.outputs.artifact_url }}
-          RELEASE_ZIP_CHECKSUM: ${{ needs.buildXCFramework.outputs.zip_checksum }}
-
-      - name: Commit Changes
-        uses: stefanzweifel/git-auto-commit-action@v6
-        with:
-          commit_message: Update Package.swift
-
   createRelease:
     name: Create Release
     runs-on: macos-15
@@ -113,11 +92,20 @@ jobs:
         id: asset-url
         run: echo "asset_url=${{ fromJSON(steps.generate-release.outputs.assets)[0].url }}.zip" >> $GITHUB_OUTPUT
 
+  updatePackageManifest:
+    name: Update Package Manifest
+    runs-on: macos-15
+    needs: createRelease
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Modify Package Manifest
         uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest-private@main
         with:
           PACKAGE_MANIFEST_PATH: "./Package.swift"
-          RELEASE_ZIP_ARTIFACT_URL: ${{ steps.asset-url.outputs.asset_url }}
+          RELEASE_ZIP_ARTIFACT_URL: ${{ needs.createRelease.outputs.release_asset_url }}
           RELEASE_ZIP_CHECKSUM: ${{ needs.buildXCFramework.outputs.zip_checksum }}
 
       - name: Commit Changes
