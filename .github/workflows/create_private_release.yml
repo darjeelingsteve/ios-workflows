@@ -125,3 +125,7 @@ jobs:
         with:
           commit_message: Update Package.swift
 
+      - name: Move Release Tag
+        run: |
+          git tag -f ${{ inputs.VERSION_NUMBER }}
+          git push origin -f ${{ inputs.VERSION_NUMBER }}
