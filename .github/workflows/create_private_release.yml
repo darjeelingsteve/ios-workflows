@@ -36,7 +36,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build XCFramework        id: build
+      - name: Build XCFramework
+        id: build
         uses: darjeelingsteve/ios-workflows/.github/actions/xcframework-build@main
         with:
           VERSION_NUMBER: ${{ inputs.VERSION_NUMBER }}
@@ -98,8 +99,12 @@ jobs:
           name: XCFramework-Archive
 
       - name: Generate Release
+        id: generate-release
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ needs.buildXCFramework.outputs.zip_path }}
           tag_name: ${{ inputs.VERSION_NUMBER }}
           body: "ArtifactURL: ${{ needs.buildXCFramework.outputs.artifact_url }}\nRelease checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
+
+      - name: Print Release Details
+        run: echo ${{ fromJSON(steps.generate-release.outputs.assets) }}
