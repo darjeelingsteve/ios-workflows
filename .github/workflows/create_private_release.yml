@@ -62,7 +62,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: 'refs/tags/${{ inputs.VERSION_NUMBER }}',
-              sha: process.env.LATEST_SHA
+              sha: context.sha
             })
 
       - name: Download XCFramework Artifact
