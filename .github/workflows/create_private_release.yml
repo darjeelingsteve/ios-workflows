@@ -106,6 +106,9 @@ jobs:
           tag_name: ${{ inputs.VERSION_NUMBER }}
           body: "ArtifactURL: ${{ needs.buildXCFramework.outputs.artifact_url }}\nRelease checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
 
+      - name: Remove XCFramework Zip
+        run: rm -rf ${{ needs.buildXCFramework.outputs.zip_path }}
+
       - name: Retrieve Release Asset URL
         id: asset-url
         run: echo "asset_url=${{ fromJSON(steps.generate-release.outputs.assets)[0].url }}" >> $GITHUB_OUTPUT
