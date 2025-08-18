@@ -43,46 +43,16 @@ jobs:
           XCODE_PROJECT: ${{ inputs.XCODE_PROJECT_NAME }}
           SCHEME: ${{ inputs.SCHEME_NAME }}
 
-  updatePackageManifest:
-    name: Update Package Manifest
-    runs-on: macos-15
-    needs: buildXCFramework
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Modify Package Manifest
-        uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest@main
-        with:
-          PACKAGE_MANIFEST_PATH: "./Package.swift"
-          VERSION_NUMBER: ${{ inputs.VERSION_NUMBER}}
-          RELEASE_ZIP_NAME: ${{ needs.buildXCFramework.outputs.zip_path }}
-          RELEASE_ZIP_CHECKSUM: ${{ needs.buildXCFramework.outputs.zip_checksum }}
-          GITHUB_SERVER: ${{ github.server_url }}
-          GITHUB_REPOSITORY_NAME: ${{ github.repository }}
-
-      - name: Commit Changes
-        uses: stefanzweifel/git-auto-commit-action@v6
-        with:
-          commit_message: Update Package.swift
-
   createRelease:
     name: Create Release
     runs-on: macos-15
-    needs: 
-      - buildXCFramework
-      - updatePackageManifest
+    needs: buildXCFramework
+    outputs:
+      release_asset_url: ${{ steps.asset-url.outputs.asset_url }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Pull Latest Changes and Add Latest Commit SHA to Environment
-        run: |
-          git pull --no-rebase
-          latest_sha=`git rev-parse HEAD`
-          echo "LATEST_SHA=$latest_sha" >> "$GITHUB_ENV"
 
       - name: Add Release Tag
         uses: actions/github-script@v5
@@ -92,7 +62,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: 'refs/tags/${{ inputs.VERSION_NUMBER }}',
-              sha: process.env.LATEST_SHA
+              sha: context.sha
             })
 
       - name: Download XCFramework Artifact
@@ -101,8 +71,44 @@ jobs:
           name: XCFramework-Archive
 
       - name: Generate Release
+        id: generate-release
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ needs.buildXCFramework.outputs.zip_path }}
           tag_name: ${{ inputs.VERSION_NUMBER }}
           body: "Release checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
+
+      - name: Remove XCFramework Zip
+        run: rm -rf ${{ needs.buildXCFramework.outputs.zip_path }}
+
+      - name: Retrieve Release Asset URL
+        id: asset-url
+        run: echo "asset_url=${{ fromJSON(steps.generate-release.outputs.assets)[0].url }}.zip" >> $GITHUB_OUTPUT
+
+  updatePackageManifest:
+    name: Update Package Manifest
+    runs-on: macos-15
+    needs: 
+      - buildXCFramework
+      - createRelease
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Modify Package Manifest
+        uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest@main
+        with:
+          PACKAGE_MANIFEST_PATH: "./Package.swift"
+          RELEASE_ZIP_ARTIFACT_URL: ${{ needs.createRelease.outputs.release_asset_url }}
+          RELEASE_ZIP_CHECKSUM: ${{ needs.buildXCFramework.outputs.zip_checksum }}
+
+      - name: Commit Changes
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: Update Package.swift
+
+      - name: Move Release Tag
+        run: |
+          git tag -f ${{ inputs.VERSION_NUMBER }}
+          git push origin -f ${{ inputs.VERSION_NUMBER }}
