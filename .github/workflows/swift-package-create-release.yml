@@ -20,9 +20,10 @@ jobs:
     #   zip_checksum: ${{ steps.build.outputs.zip_checksum }}
 
     steps:
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: '16.4.0'
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4.0'
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,6 +31,11 @@ jobs:
       - name: Build XCFramework
         id: build
         uses: darjeelingsteve/ios-workflows/.github/actions/swift-package-xcframework-build@main
+
+      - name: List files in working directory
+        run: |
+          pwd
+          ls -R
 
   # createRelease:
   #   name: Create Release
