@@ -1,0 +1,41 @@
+name: Swift Package XCFramework Build
+description: "Creates an XCFramework from a Swift Package and returns a zip of it along with a checksum"
+
+outputs:
+  zip_path:
+    description: "Path to the zipped XCFramework"
+    value: ${{ steps.zip.outputs.zip_path }}
+  zip_checksum:
+    description: "Checksum of the zipped XCFramework"
+    value: ${{ steps.checksum.outputs.zip_checksum }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build XCFramework
+        id: build
+        uses: segment-integrations/swift-create-xcframework@v2
+        with:
+          xcconfig: ${{ github.action_path }}/xcframework-build.xcconfig
+
+    # - name: Zip XCFramework and Set Output
+    #   id: zip
+    #   shell: sh
+    #   run: |
+    #     zip_name="${{ inputs.XCODE_PROJECT }}.xcframework.zip"
+    #     zip -r "$zip_name" "./${{ inputs.XCODE_PROJECT }}.xcframework"
+    #     echo "zip_path=${zip_name}" >> "$GITHUB_OUTPUT"
+    #     echo "ZIP_NAME=$zip_name" >> "$GITHUB_ENV"
+
+    # - name: Generate Zip Checksum
+    #   id: checksum
+    #   shell: sh
+    #   run: |
+    #     checksum=`swift package compute-checksum "$ZIP_NAME"`
+    #     echo "zip_checksum=${checksum}" >> "$GITHUB_OUTPUT"
+
+    # - name: Archive XCFramework.zip
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: XCFramework-Archive
+    #     path: ./${{ inputs.XCODE_PROJECT }}.xcframework.zip
