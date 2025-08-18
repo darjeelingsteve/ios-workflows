@@ -15,9 +15,9 @@ jobs:
   buildXCFramework:
     name: Build XCFramework
     runs-on: macos-15
-    outputs:
-      zip_path: ${{ steps.build.outputs.zip_path }}
-      zip_checksum: ${{ steps.build.outputs.zip_checksum }}
+    # outputs:
+    #   zip_path: ${{ steps.build.outputs.zip_path }}
+    #   zip_checksum: ${{ steps.build.outputs.zip_checksum }}
 
     steps:
       - name: Checkout
