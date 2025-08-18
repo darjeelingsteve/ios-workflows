@@ -14,7 +14,7 @@ runs:
   steps:
     - name: Build XCFramework
       id: build
-      uses: segment-integrations/swift-create-xcframework@v2
+      uses: segment-integrations/swift-create-xcframework@2.4.0
       with:
         xcconfig: ${{ github.action_path }}/xcframework-build.xcconfig
 
