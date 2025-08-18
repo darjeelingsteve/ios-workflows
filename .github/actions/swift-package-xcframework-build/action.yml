@@ -13,10 +13,10 @@ runs:
   using: "composite"
   steps:
     - name: Build XCFramework
-        id: build
-        uses: segment-integrations/swift-create-xcframework@v2
-        with:
-          xcconfig: ${{ github.action_path }}/xcframework-build.xcconfig
+      id: build
+      uses: segment-integrations/swift-create-xcframework@v2
+      with:
+        xcconfig: ${{ github.action_path }}/xcframework-build.xcconfig
 
     # - name: Zip XCFramework and Set Output
     #   id: zip
