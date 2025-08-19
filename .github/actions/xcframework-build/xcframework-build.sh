@@ -2,34 +2,27 @@ set -euo pipefail
 
 echo "XCFramework build args: $@"
 
-if [ $# -ne 8 ]; then
+if [ $# -ne 6 ]; then
   echo ""
-  echo "Error: Requires a semantic version number, project, scheme, and xcconfig path to be specified."
+  echo "Error: Requires a project, scheme, and xcconfig path to be specified."
   echo ""
   echo "Usage: "
-  echo "xcframework-build.sh -v semantic.version.number"
-  echo "                     -p Project.xcodeproj"
+  echo "xcframework-build.sh -p Project.xcodeproj"
   echo "                     -s SchemeName"
   echo "                     -c XCConfig file path"
   echo ""
   exit 1
 fi
 
-while getopts v:p:s:c: option
+while getopts p:s:c: option
 do
   case "${option}"
   in
-    v) VERSION=${OPTARG};;
     p) PROJECT=${OPTARG};;
     s) SCHEME=${OPTARG};;
     c) XCCONFIG=${OPTARG};;
   esac
 done
-
-if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-  echo "Invalid version number: \"$VERSION\"" 1>&2 
-  exit 1
-fi
 
 buildXCFramework() {
 	# iOS Devices

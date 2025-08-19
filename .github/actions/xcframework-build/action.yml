@@ -2,9 +2,6 @@ name: XCFramework Build
 description: "Creates an XCFramework and saves a zip of it along with a checksum as artifacts"
 
 inputs:
-  VERSION_NUMBER:
-    description: "The version number of the new release"
-    required: true
   XCODE_PROJECT:
     description: "The project to use"
     required: true
@@ -24,7 +21,7 @@ runs:
   steps:
     - name: Create XCFramework
       shell: sh
-      run: "${{ github.action_path }}/xcframework-build.sh -v ${{ inputs.VERSION_NUMBER }} -p ${{ inputs.XCODE_PROJECT }} -s ${{ inputs.SCHEME }} -c ${{ github.action_path }}/xcframework-build.xcconfig"
+      run: "${{ github.action_path }}/xcframework-build.sh -p ${{ inputs.XCODE_PROJECT }} -s ${{ inputs.SCHEME }} -c ${{ github.action_path }}/xcframework-build.xcconfig"
 
     - name: Zip XCFramework and Set Output
       id: zip
