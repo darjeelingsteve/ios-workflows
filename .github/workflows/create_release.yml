@@ -87,7 +87,7 @@ jobs:
         uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest@main
         with:
           PACKAGE_MANIFEST_PATH: "./Package.swift"
-          RELEASE_ZIP_ARTIFACT_URL: ${{ needs.createRelease.outputs.release_asset_url }}
+          RELEASE_ZIP_ARTIFACT_URL: ${{ needs.updateRelease.outputs.release_asset_url }}
           RELEASE_ZIP_CHECKSUM: ${{ needs.buildXCFramework.outputs.zip_checksum }}
 
       - name: Commit Changes
