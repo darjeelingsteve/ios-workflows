@@ -82,6 +82,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+          fetch-depth: 0
 
       - name: Modify Package Manifest
         uses: darjeelingsteve/ios-workflows/.github/actions/modify-package-manifest@main
