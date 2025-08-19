@@ -18,8 +18,8 @@ on:
         description: 'The name of the scheme used to build the framework'
         required: true
         type: string
-      VERSION_NUMBER:
-        description: 'The version number for the release'
+      TAG_NAME:
+        description: 'The name of the tag for the release'
         required: true
         type: string
 
@@ -39,12 +39,11 @@ jobs:
         id: build
         uses: darjeelingsteve/ios-workflows/.github/actions/xcframework-build@main
         with:
-          VERSION_NUMBER: ${{ inputs.VERSION_NUMBER }}
           XCODE_PROJECT: ${{ inputs.XCODE_PROJECT_NAME }}
           SCHEME: ${{ inputs.SCHEME_NAME }}
 
-  createRelease:
-    name: Create Release
+  updateRelease:
+    name: Add Framework Zip to Release
     runs-on: macos-15
     needs: buildXCFramework
     outputs:
@@ -54,43 +53,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Add Release Tag
-        uses: actions/github-script@v5
-        with:
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/${{ inputs.VERSION_NUMBER }}',
-              sha: context.sha
-            })
-
       - name: Download XCFramework Artifact
         uses: actions/download-artifact@v4
         with:
           name: XCFramework-Archive
 
-      - name: Generate Release
-        id: generate-release
+      - name: Update Release
+        id: update-release
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ needs.buildXCFramework.outputs.zip_path }}
-          tag_name: ${{ inputs.VERSION_NUMBER }}
-          body: "Release checksum: ${{ needs.buildXCFramework.outputs.zip_checksum }}"
+          tag_name: ${{ inputs.TAG_NAME }}
 
       - name: Remove XCFramework Zip
         run: rm -rf ${{ needs.buildXCFramework.outputs.zip_path }}
 
       - name: Retrieve Release Asset URL
         id: asset-url
-        run: echo "asset_url=${{ fromJSON(steps.generate-release.outputs.assets)[0].url }}.zip" >> $GITHUB_OUTPUT
+        run: echo "asset_url=${{ fromJSON(steps.update-release.outputs.assets)[0].url }}.zip" >> $GITHUB_OUTPUT
 
   updatePackageManifest:
     name: Update Package Manifest
     runs-on: macos-15
     needs: 
       - buildXCFramework
-      - createRelease
+      - updateRelease
 
     steps:
       - name: Checkout
@@ -110,5 +97,5 @@ jobs:
 
       - name: Move Release Tag
         run: |
-          git tag -f ${{ inputs.VERSION_NUMBER }}
-          git push origin -f ${{ inputs.VERSION_NUMBER }}
+          git tag -f ${{ inputs.TAG_NAME }}
+          git push origin -f ${{ inputs.TAG_NAME }}
